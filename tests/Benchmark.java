@@ -5,27 +5,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 
-/**
- * Kruskal vs Prim on identical graphs at three sizes.
- *
- * Generator: for each size, java.util.Random(SEED + n) draws m edges with
- * uniform endpoints in [0, n) and uniform weights in [-1e9, 1e9]; loops and
- * parallel edges are kept. The same int[][] array is passed to both methods.
- *
- * Timed region: one call of Algorithms.kruskal(n, edges) or Algorithms.prim(n, edges),
- * measured with System.nanoTime(). It includes everything the method builds
- * (sort keys / adjacency lists, DSU / heap, result map). It excludes JVM start,
- * compilation, graph generation, JSON parsing, Input conversion and output, for
- * both methods alike.
- *
- * Protocol per size: verify both answers first (valid forest, equal cost,
- * component count equal to an independent union-find count), then WARMUP untimed calls of each
- * method, then RUNS timed rounds; each round runs Kruskal then Prim, and the
- * order alternates between rounds so neither method always runs first.
- *
- *   javac --release 17 -encoding UTF-8 -d .build/tests src/Java/*.java tests/GraphTests.java tests/Benchmark.java
- *   java -Xmx384m -cp .build/tests Benchmark
- */
 public final class Benchmark {
     private static final long SEED = 20261025L;
     private static final int WARMUP = 5;
@@ -116,7 +95,6 @@ public final class Benchmark {
         return out.toString();
     }
 
-    /** Component count by union-find with no ranking, independent of both methods. */
     private static int countComponents(int n, int[][] edges) {
         int[] parent = new int[n];
         for (int i = 0; i < n; i++) {

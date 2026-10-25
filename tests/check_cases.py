@@ -1,18 +1,4 @@
-"""Run own JSON Lines cases through the real program and check answers semantically.
-
-Usage from the repository root (needs Python 3.12+ and JDK 17+):
-    python tests/check_cases.py            # hand cases: tests/cases.jsonl + tests/expected.jsonl
-    python tests/check_cases.py --large    # seeded inputs at the size limits
-
-Small cases: all requests go through src/Java/Main twice in one process to check
-state reset. Each answer is checked semantically against the hand-written answer
-in tests/expected.jsonl, so an alternative valid forest, order, labelling or
-parent array is accepted. Actual answers are written to tests/actual.jsonl.
-
-Large cases: generated with a fixed seed. Expected values come from simple Python
-references that do not share code with the solution (Kahn order for DAGs, union-find
-for forests) or from the construction itself (planted SCC groups, chains, rings).
-"""
+"""Check own cases: python tests/check_cases.py [--large]"""
 import argparse
 import json
 import pathlib
@@ -28,7 +14,6 @@ W = 1_000_000_000
 
 
 def build():
-    """Compile src/Java into .build/java and return the command that runs Main."""
     output = ROOT / '.build' / 'java'
     output.mkdir(parents=True, exist_ok=True)
     sources = sorted(str(path) for path in (ROOT / 'src' / 'Java').glob('*.java'))
@@ -38,7 +23,6 @@ def build():
 
 
 def execute(command, requests):
-    """Send all requests to one process; return one parsed result per request."""
     data = ''.join(json.dumps(request, separators=(',', ':')) + '\n' for request in requests)
     result = subprocess.run(command, input=data, capture_output=True, text=True, encoding='utf-8', timeout=20)
     if result.returncode:
@@ -49,14 +33,11 @@ def execute(command, requests):
     return [json.loads(line) for line in lines]
 
 
-# ---------------------------------------------------------------- semantic checks
-
 def is_int(value):
     return type(value) is int and -(1 << 63) <= value < (1 << 63)
 
 
 def check(request, answer, expected):
-    """True if answer is a valid answer for request; expected gives optimum values."""
     try:
         return CHECKS[request['task']](request, answer, expected)
     except (KeyError, TypeError, ValueError, IndexError):
@@ -81,7 +62,7 @@ def check_forest(x, y, e):
         u, v, w = edges[i]
         a, b = find(parent, u), find(parent, v)
         if a == b:
-            return False  # cycle or self-loop
+            return False
         parent[a] = b
         total += w
     return total == y['cost'] and all(find(parent, u) == find(parent, v) for u, v, _ in edges)
@@ -94,7 +75,7 @@ def check_scc(x, y, e):
     forward, backward = {}, {}
     for label, ref in zip(labels, reference):
         if forward.setdefault(label, ref) != ref or backward.setdefault(ref, label) != label:
-            return False  # labels must match the reference partition one-to-one
+            return False
     pairs = [tuple(p) for p in y['condensation']]
     expected = {(labels[u], labels[v]) for u, v in x['edges'] if labels[u] != labels[v]}
     return len(pairs) == len(set(pairs)) and set(pairs) == expected
@@ -135,7 +116,7 @@ def check_dag(x, y, e):
         u, head, w = edges[parent[v]]
         if head != v or distance[u] is None or distance[u] + w != distance[v]:
             return False
-    state = [0] * n  # every parent chain must reach the source: 1 = on chain, 2 = leads to source
+    state = [0] * n
     state[source] = 2
     for v in range(n):
         if distance[v] is None:
@@ -177,8 +158,6 @@ def small():
     return failures
 
 
-# ---------------------------------------------------------------- references
-
 def find(parent, x):
     while parent[x] != x:
         parent[x] = parent[parent[x]]
@@ -214,7 +193,6 @@ def ref_forest(n, edges):
 
 
 def ref_dag(n, source, edges):
-    """Kahn's algorithm (BFS order, not DFS) followed by relaxation."""
     out, indegree = [[] for _ in range(n)], [0] * n
     for u, v, w in edges:
         out[u].append((v, w))
@@ -240,8 +218,6 @@ def ref_dag(n, source, edges):
     return {'acyclic': True, 'distance': distance}
 
 
-# ---------------------------------------------------------------- generators
-
 def random_dag(rng, n, m):
     perm = list(range(n))
     rng.shuffle(perm)
@@ -254,7 +230,6 @@ def random_dag(rng, n, m):
 
 
 def planted_scc(rng, n, m):
-    """Groups of vertices joined by a cycle; edges between groups only go forward."""
     perm = list(range(n))
     rng.shuffle(perm)
     group = [0] * n

@@ -76,18 +76,18 @@ PASS dag example is written with null for the unreachable vertex
 PASS JSON reader/writer round-trips escapes, unicode, nested arrays and literals
 PASS JSON writer handles int[], Long[] with null and lists
 == Large inputs (n = 100000, m or q = 250000) and deep chains
-PASS dsu n=100000 q=250000: final components match BFS (11 ms)
+PASS dsu n=100000 q=250000: final components match BFS (13 ms)
 PASS dsu long chain of unions ends as one component of size n
-PASS kruskal (64 ms) and prim (138 ms) agree at n=100000 m=250000, cost -52936447029490
+PASS kruskal (66 ms) and prim (121 ms) agree at n=100000 m=250000, cost -52936447029490
 PASS kruskal and prim on a 100000-vertex path, cost 9.9999e13
-PASS scc random n=100000 m=250000 passes the certificate (71 ms)
+PASS scc random n=100000 m=250000 passes the certificate (95 ms)
 PASS scc deep chain of 100000 vertices: n singleton SCCs
 PASS scc 100000-vertex ring is a single SCC
-PASS topo random DAG n=100000 m=250000 (27 ms)
+PASS topo random DAG n=100000 m=250000 (18 ms)
 PASS topo deep chains of 100000 vertices in both numbering directions
 PASS topo 100000-vertex ring is cyclic
-PASS dag random n=100000 m=250000 passes the certificate (24 ms)
+PASS dag random n=100000 m=250000 passes the certificate (26 ms)
 PASS dag deep chain of 100000 vertices, distance -9.9999e13, route of 100000 vertices
 PASS dag 100000-vertex ring is cyclic
 
-SUMMARY: 76 passed, 0 failed (1.8 s)
+SUMMARY: 76 passed, 0 failed (1.9 s)

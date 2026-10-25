@@ -7,18 +7,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-/**
- * Own test suite for Algorithms.java (no external libraries).
- *
- * Expected answers come from methods that do not share code with the solution:
- * brute force on small graphs (subset enumeration, transitive closure, Kahn's
- * algorithm, Bellman-Ford) and O(n+m) certificate checkers on large graphs.
- * Non-unique answers are checked semantically, never by exact comparison.
- *
- * Build and run from the repository root (see tests/README.md):
- *   javac --release 17 -encoding UTF-8 -d .build/tests src/Java/*.java tests/GraphTests.java
- *   java -Xss256k -Xmx384m -cp .build/tests GraphTests
- */
 public final class GraphTests {
     private static int passed;
     private static int failed;
@@ -51,7 +39,6 @@ public final class GraphTests {
         }
     }
 
-    /** Runs many random cases and reports them as one line. */
     private static void checkAll(boolean[] results, String name) {
         int bad = 0;
         for (boolean ok : results) {
@@ -61,10 +48,6 @@ public final class GraphTests {
         }
         check(bad == 0, name + " (" + results.length + " cases" + (bad > 0 ? ", " + bad + " wrong" : "") + ")");
     }
-
-    // ==================================================================
-    // DSU
-    // ==================================================================
 
     private static void dsuTests() {
         System.out.println("== DSU");
@@ -93,7 +76,6 @@ public final class GraphTests {
         checkAll(results, "dsu random small graphs vs naive relabelling");
     }
 
-    /** Naive reference: keep an explicit label per vertex and relabel on merge. */
     private static int[][] bruteDsu(int n, int[][] ops) {
         int[] label = new int[n];
         for (int i = 0; i < n; i++) {
@@ -121,10 +103,6 @@ public final class GraphTests {
         }
         return out;
     }
-
-    // ==================================================================
-    // Kruskal and Prim
-    // ==================================================================
 
     private static void forestTests() {
         System.out.println("== Kruskal / Prim");
@@ -155,7 +133,6 @@ public final class GraphTests {
             int m = n == 0 ? 0 : random.nextInt(10);
             int[][] edges = new int[m][];
             for (int i = 0; i < m; i++) {
-                // Small weight range forces many ties; loops and parallels appear often.
                 edges[i] = new int[] {random.nextInt(n), random.nextInt(n), random.nextInt(7) - 3};
             }
             long[] reference = bruteForest(n, edges);
@@ -169,11 +146,6 @@ public final class GraphTests {
         return method.equals("kruskal") ? Algorithms.kruskal(n, edges) : Algorithms.prim(n, edges);
     }
 
-    /**
-     * Forest certificate: expected cost/components, distinct IDs, exactly n-c edges,
-     * no cycle (own union-find), the selected weights add up to cost, and the
-     * forest spans every input edge (both endpoints in one tree).
-     */
     static boolean forestValid(int n, int[][] edges, Map<String, Object> result,
                                long expectedCost, int expectedComponents) {
         long cost = (Long) result.get("cost");
@@ -195,7 +167,7 @@ public final class GraphTests {
             int a = findRoot(root, edges[id][0]);
             int b = findRoot(root, edges[id][1]);
             if (a == b) {
-                return false; // cycle or self-loop
+                return false;
             }
             root[a] = b;
             sum += edges[id][2];
@@ -219,7 +191,6 @@ public final class GraphTests {
         return x;
     }
 
-    /** Reference {cost, components}: BFS components, then the cheapest forest among all subsets. */
     private static long[] bruteForest(int n, int[][] edges) {
         int components = countUndirectedComponents(n, edges);
         int need = n - components;
@@ -244,7 +215,7 @@ public final class GraphTests {
                 }
             }
             if (acyclic) {
-                best = Math.min(best, cost); // n-c acyclic edges always span every component
+                best = Math.min(best, cost);
             }
         }
         return new long[] {best, components};
@@ -280,10 +251,6 @@ public final class GraphTests {
         }
         return components;
     }
-
-    // ==================================================================
-    // SCC
-    // ==================================================================
 
     private static void sccTests() {
         System.out.println("== Kosaraju SCC");
@@ -323,7 +290,6 @@ public final class GraphTests {
         return (List<int[]>) result.get("condensation");
     }
 
-    /** Reference: u and v share an SCC iff each reaches the other (Floyd-Warshall closure). */
     private static boolean sameScc(int n, int[][] edges, int[] label) {
         boolean[][] reach = new boolean[n][n];
         for (int i = 0; i < n; i++) {
@@ -349,13 +315,6 @@ public final class GraphTests {
         return true;
     }
 
-    /**
-     * O(n+m) SCC certificate: (1) labels are non-negative; (2) condensation is
-     * exactly the set of cross-label pairs without duplicates; (3) every label
-     * class is strongly connected (forward and backward BFS from one member inside
-     * the class reach all members); (4) the condensation is acyclic, so no two
-     * classes may be merged. (3)+(4) mean the classes are exactly the SCCs.
-     */
     @SuppressWarnings("unchecked")
     static boolean sccValid(int n, int[][] edges, Map<String, Object> result) {
         int[] label = (int[]) result.get("component");
@@ -425,7 +384,6 @@ public final class GraphTests {
             }
         }
 
-        // Kahn's algorithm on the condensation pairs.
         java.util.Map<Integer, List<Integer>> next = new java.util.HashMap<>();
         java.util.Map<Integer, Integer> indegree = new java.util.HashMap<>();
         for (int l : classSize.keySet()) {
@@ -455,10 +413,6 @@ public final class GraphTests {
         return removed == classSize.size();
     }
 
-    // ==================================================================
-    // Topological order
-    // ==================================================================
-
     private static void topoTests() {
         System.out.println("== Topological order");
         check(topoValid(0, new int[0][], Algorithms.topo(0, new int[0][]), true), "topo n=0 is acyclic with order=[]");
@@ -485,7 +439,6 @@ public final class GraphTests {
         checkAll(results, "topo random small graphs vs Kahn's algorithm");
     }
 
-    /** Independent cycle test: Kahn's algorithm removes all vertices iff the graph is a DAG. */
     static boolean kahnAcyclic(int n, int[][] edges) {
         int[] indegree = new int[n];
         List<List<Integer>> out = new ArrayList<>();
@@ -514,7 +467,6 @@ public final class GraphTests {
         return removed == n;
     }
 
-    /** Topological certificate: flag matches; order is a permutation and every edge goes forward. */
     static boolean topoValid(int n, int[][] edges, Map<String, Object> result, boolean expectedAcyclic) {
         boolean acyclic = (Boolean) result.get("acyclic");
         int[] order = (int[]) result.get("order");
@@ -542,10 +494,6 @@ public final class GraphTests {
         }
         return true;
     }
-
-    // ==================================================================
-    // DAG shortest paths
-    // ==================================================================
 
     private static void dagTests() {
         System.out.println("== DAG shortest paths");
@@ -586,7 +534,6 @@ public final class GraphTests {
         checkAll(results, "dag random small graphs vs Bellman-Ford");
     }
 
-    /** Reference distances by Bellman-Ford (n-1 rounds); valid on a DAG with negative weights. */
     private static Long[] bellmanFord(int n, int source, int[][] edges) {
         Long[] d = new Long[n];
         d[source] = 0L;
@@ -600,12 +547,6 @@ public final class GraphTests {
         return d;
     }
 
-    /**
-     * Shortest-path certificate: acyclic flag matches Kahn's algorithm; distance is
-     * null exactly for vertices BFS cannot reach; source has 0 and -1; each other
-     * reached vertex has a tight parent edge that ends at it; no edge from a reached
-     * vertex can improve a distance; and every parent chain ends at the source.
-     */
     static boolean dagValid(int n, int source, int[][] edges, Map<String, Object> result) {
         boolean acyclic = (Boolean) result.get("acyclic");
         Long[] distance = (Long[]) result.get("distance");
@@ -649,7 +590,7 @@ public final class GraphTests {
                 return false;
             }
         }
-        byte[] state = new byte[n]; // 0 unknown, 1 on current chain, 2 leads to source
+        byte[] state = new byte[n];
         state[source] = 2;
         for (int v = 0; v < n; v++) {
             if (distance[v] == null) {
@@ -695,10 +636,6 @@ public final class GraphTests {
         return seen;
     }
 
-    // ==================================================================
-    // Route helper
-    // ==================================================================
-
     private static void routeHelperTests() {
         System.out.println("== Route helper");
         int[][] example = {{0, 1, 3}, {0, 2, 8}, {1, 2, -7}, {2, 3, 4}};
@@ -716,7 +653,6 @@ public final class GraphTests {
         System.out.println("  route(0 -> 4) = " + toFour + " (unreachable)");
         check(toFour.isEmpty(), "route to unreachable vertex 4 is the empty list");
 
-        // Ties: 0->1 via edge 0 or edge 1 (parallel, weight 2) or 0->2->1 (1+1); 1->3 weight 0.
         int[][] tied = {{0, 1, 2}, {0, 1, 2}, {0, 2, 1}, {2, 1, 1}, {1, 3, 0}};
         Map<String, Object> r = Algorithms.dag(4, 0, tied);
         int[] tp = (int[]) r.get("parent_edge");
@@ -741,7 +677,6 @@ public final class GraphTests {
                 "route helper and checker accept the tied detour 0->2->1->3");
     }
 
-    /** Sum of the parent edges on the route, walked from target back to source. */
     private static long routeCost(int[][] edges, int[] parent, int source, int target) {
         long cost = 0;
         for (int v = target; v != source; v = edges[parent[v]][0]) {
@@ -750,7 +685,6 @@ public final class GraphTests {
         return cost;
     }
 
-    /** Each consecutive pair (a, b) must be the edge parent[b] directed a -> b. */
     private static boolean routeFollowsEdges(int[][] edges, int[] parent, List<Integer> route) {
         for (int i = 1; i < route.size(); i++) {
             int[] e = edges[parent[route.get(i)]];
@@ -767,13 +701,9 @@ public final class GraphTests {
         return copy;
     }
 
-    // ==================================================================
-    // Checkers accept alternative answers and reject invalid witnesses
-    // ==================================================================
-
     private static void witnessTests() {
         System.out.println("== Checker accepts alternatives / rejects invalid witnesses");
-        // Square 0-1-2-3-0, all weight 1, plus a diagonal of weight 5 and a loop.
+
         int[][] square = {{0, 1, 1}, {1, 2, 1}, {2, 3, 1}, {3, 0, 1}, {0, 2, 5}, {1, 1, -9}};
         check(forestValid(4, square, forestOf(3L, new int[] {0, 1, 2}, 1), 3, 1)
                         && forestValid(4, square, forestOf(3L, new int[] {1, 2, 3}, 1), 3, 1),
@@ -846,10 +776,6 @@ public final class GraphTests {
         return r;
     }
 
-    // ==================================================================
-    // State reset and JSON input/output
-    // ==================================================================
-
     private static void stateResetTest() {
         System.out.println("== State reset");
         String[] lines = {
@@ -894,10 +820,6 @@ public final class GraphTests {
     private static Map<String, Object> request(String line) {
         return (Map<String, Object>) JsonCodec.parse(line);
     }
-
-    // ==================================================================
-    // Large inputs and deep chains at the published limits
-    // ==================================================================
 
     private static void largeTests() {
         System.out.println("== Large inputs (n = 100000, m or q = 250000) and deep chains");
@@ -971,7 +893,7 @@ public final class GraphTests {
         check(topoValid(n, dagEdges, to, true), "topo random DAG n=100000 m=250000 (" + ms + " ms)");
         int[][] backwardChain = new int[n - 1][];
         for (int i = 0; i < n - 1; i++) {
-            backwardChain[i] = new int[] {n - 1 - i, n - 2 - i}; // DFS from 0 finishes at once; deep from n-1
+            backwardChain[i] = new int[] {n - 1 - i, n - 2 - i};
         }
         check(topoValid(n, backwardChain, Algorithms.topo(n, backwardChain), true)
                         && topoValid(n, chain, Algorithms.topo(n, chain), true),
@@ -998,10 +920,6 @@ public final class GraphTests {
         check(!(Boolean) Algorithms.dag(n, 0, ringWeighted).get("acyclic"), "dag 100000-vertex ring is cyclic");
     }
 
-    // ==================================================================
-    // Generators and small helpers
-    // ==================================================================
-
     private static int[][] states(Map<String, Object> result) {
         return (int[][]) result.get("states");
     }
@@ -1014,7 +932,6 @@ public final class GraphTests {
         return edges;
     }
 
-    /** Random DAG: edges go forward in a random permutation, so the vertex IDs hide the order. */
     private static int[][] randomDag(Random random, int n, int m) {
         if (n < 2) {
             return new int[0][];

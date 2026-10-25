@@ -6,26 +6,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Graph algorithms: DSU, Kruskal, Prim, Kosaraju SCC, DFS topological order,
- * DAG shortest paths and a route-reconstruction helper.
- *
- * Every method takes plain arrays (row i of edges is edge ID i) and allocates
- * all of its state locally, so nothing survives from one request to the next.
- * All traversals use explicit stacks, never recursion.
- */
 public final class Algorithms {
     private Algorithms() {
     }
 
-    /** Shifts weights in [-1e9, 1e9] to [0, 2e9], which fits in 31 bits. */
     private static final long WEIGHT_OFFSET = 1_000_000_000L;
 
-    // ------------------------------------------------------------------
-    // DSU
-    // ------------------------------------------------------------------
-
-    /** Disjoint-set union with path compression and union by size. */
     static final class DisjointSets {
         private final int[] parent;
         private final int[] size;
@@ -43,7 +29,6 @@ public final class Algorithms {
             largest = n > 0 ? 1 : 0;
         }
 
-        /** Iterative find: locate the root, then point every vertex on the path at it. */
         int find(int x) {
             int root = x;
             while (parent[root] != root) {
@@ -57,7 +42,6 @@ public final class Algorithms {
             return root;
         }
 
-        /** Attaches the smaller tree under the larger one; returns false if already joined. */
         boolean union(int a, int b) {
             int ra = find(a);
             int rb = find(b);
@@ -85,7 +69,6 @@ public final class Algorithms {
         }
     }
 
-    /** DSU with path compression and union by size; returns states [components, largest] after each operation. */
     static Map<String, Object> dsu(int n, int[][] operations) {
         DisjointSets sets = new DisjointSets(n);
         int[][] states = new int[operations.length][];
@@ -98,15 +81,9 @@ public final class Algorithms {
         return result;
     }
 
-    // ------------------------------------------------------------------
-    // Minimum spanning forest
-    // ------------------------------------------------------------------
-
-    /** Kruskal: edges sorted by weight, accepted when find(u) != find(v); returns cost, edge_ids, components. */
     static Map<String, Object> kruskal(int n, int[][] edges) {
         int m = edges.length;
-        // Key = shifted weight in the high 32 bits, edge ID in the low 32 bits.
-        // Sorting the primitive keys orders edges by weight, then by ID.
+
         long[] keys = new long[m];
         for (int id = 0; id < m; id++) {
             keys[id] = ((edges[id][2] + WEIGHT_OFFSET) << 32) | id;
@@ -120,7 +97,7 @@ public final class Algorithms {
         for (long key : keys) {
             int id = (int) key;
             int[] e = edges[id];
-            // A self-loop always has find(u) == find(v), so it is never selected.
+
             if (sets.union(e[0], e[1])) {
                 chosen[count++] = id;
                 cost += e[2];
@@ -129,7 +106,6 @@ public final class Algorithms {
         return forestResult(cost, Arrays.copyOf(chosen, count), n - count);
     }
 
-    /** Prim with a lazy binary heap, restarted from every unvisited vertex; returns cost, edge_ids, components. */
     static Map<String, Object> prim(int n, int[][] edges) {
         int[][] adjacency = undirectedAdjacency(n, edges);
         int[] start = adjacency[0];
@@ -146,7 +122,7 @@ public final class Algorithms {
             if (visited[root]) {
                 continue;
             }
-            // A new tree starts here: one more component of the input graph.
+
             components++;
             int vertex = root;
             while (true) {
@@ -158,7 +134,7 @@ public final class Algorithms {
                         heap.push(((edges[id][2] + WEIGHT_OFFSET) << 32) | id);
                     }
                 }
-                // Lazy deletion: skip edges whose endpoints are both in the tree.
+
                 vertex = -1;
                 while (!heap.isEmpty()) {
                     int id = (int) heap.pop();
@@ -188,7 +164,6 @@ public final class Algorithms {
         return result;
     }
 
-    /** Minimal binary min-heap of primitive longs, used by Prim. */
     static final class LongHeap {
         private long[] data;
         private int size;
@@ -240,14 +215,6 @@ public final class Algorithms {
         }
     }
 
-    // ------------------------------------------------------------------
-    // Adjacency lists in compressed (CSR) form
-    // ------------------------------------------------------------------
-
-    /**
-     * Directed adjacency: arcs[start[u] .. start[u+1]) are the IDs of the edges
-     * leaving u (or entering u when reversed). Edge IDs keep their input position.
-     */
     static int[][] directedAdjacency(int n, int[][] edges, boolean reversed) {
         int from = reversed ? 1 : 0;
         int[] start = new int[n + 1];
@@ -265,7 +232,6 @@ public final class Algorithms {
         return new int[][] {start, arcs};
     }
 
-    /** Undirected adjacency for Prim: each non-loop edge appears at both endpoints. */
     static int[][] undirectedAdjacency(int n, int[][] edges) {
         int[] start = new int[n + 1];
         for (int[] e : edges) {
@@ -289,15 +255,9 @@ public final class Algorithms {
         return new int[][] {start, arcs};
     }
 
-    // ------------------------------------------------------------------
-    // Kosaraju SCC
-    // ------------------------------------------------------------------
-
-    /** Kosaraju SCC; returns component labels and the exact deduplicated condensation. */
     static Map<String, Object> scc(int n, int[][] edges) {
         int[] component = kosarajuLabels(n, edges);
 
-        // Each cross-component pair is reported once; the key packs (from, to).
         Set<Long> seen = new HashSet<>();
         List<int[]> condensation = new ArrayList<>();
         for (int[] e : edges) {
@@ -313,17 +273,15 @@ public final class Algorithms {
         return result;
     }
 
-    /** Returns one label per vertex; labels are 0..k-1 in discovery order of pass two. */
     static int[] kosarajuLabels(int n, int[][] edges) {
         int[][] forward = directedAdjacency(n, edges, false);
         int[][] backward = directedAdjacency(n, edges, true);
 
-        // Pass 1 on G: record vertices in increasing finish time.
         int[] finishOrder = new int[n];
         int finished = 0;
         boolean[] visited = new boolean[n];
         int[] stack = new int[n];
-        int[] next = new int[n]; // next arc index to scan for each vertex on the stack
+        int[] next = new int[n];
         int[] fStart = forward[0];
         int[] fArcs = forward[1];
         for (int root = 0; root < n; root++) {
@@ -350,7 +308,6 @@ public final class Algorithms {
             }
         }
 
-        // Pass 2 on G^T in decreasing finish time: each tree is one SCC.
         int[] component = new int[n];
         Arrays.fill(component, -1);
         int[] bStart = backward[0];
@@ -383,15 +340,10 @@ public final class Algorithms {
         return component;
     }
 
-    // ------------------------------------------------------------------
-    // Topological ordering
-    // ------------------------------------------------------------------
-
     private static final byte UNVISITED = 0;
     private static final byte ACTIVE = 1;
     private static final byte FINISHED = 2;
 
-    /** Three-state DFS topological order; returns acyclic and order (empty when cyclic). */
     static Map<String, Object> topo(int n, int[][] edges) {
         int[] order = topologicalOrder(n, edges, directedAdjacency(n, edges, false));
         Map<String, Object> result = new LinkedHashMap<>();
@@ -400,12 +352,6 @@ public final class Algorithms {
         return result;
     }
 
-    /**
-     * Iterative three-state DFS over every vertex. Returns the reverse finish
-     * order, or null as soon as an edge reaches an ACTIVE vertex (a cycle).
-     * next[u] keeps the scan position of each suspended vertex, so every arc
-     * is examined at most once.
-     */
     static int[] topologicalOrder(int n, int[][] edges, int[][] adjacency) {
         int[] start = adjacency[0];
         int[] arcs = adjacency[1];
@@ -413,7 +359,7 @@ public final class Algorithms {
         int[] stack = new int[n];
         int[] next = new int[n];
         int[] order = new int[n];
-        int position = n; // filled from the back: reverse finish order
+        int position = n;
 
         for (int root = 0; root < n; root++) {
             if (state[root] != UNVISITED) {
@@ -428,7 +374,7 @@ public final class Algorithms {
                 if (next[u] < start[u + 1]) {
                     int v = edges[arcs[next[u]++]][1];
                     if (state[v] == ACTIVE) {
-                        return null; // back edge (a self-loop is the case v == u)
+                        return null;
                     }
                     if (state[v] == UNVISITED) {
                         state[v] = ACTIVE;
@@ -445,11 +391,6 @@ public final class Algorithms {
         return order;
     }
 
-    // ------------------------------------------------------------------
-    // DAG shortest paths
-    // ------------------------------------------------------------------
-
-    /** Whole-graph cycle check, then relaxation in topological order; returns acyclic, distance, parent_edge. */
     static Map<String, Object> dag(int n, int source, int[][] edges) {
         int[][] adjacency = directedAdjacency(n, edges, false);
         int[] order = topologicalOrder(n, edges, adjacency);
@@ -469,7 +410,6 @@ public final class Algorithms {
         Arrays.fill(parentEdge, -1);
         reached[source] = true;
 
-        // Vertices before the source in the order are unreachable and stay unreached.
         for (int u : order) {
             if (!reached[u]) {
                 continue;
@@ -496,15 +436,7 @@ public final class Algorithms {
         return result;
     }
 
-    /**
-     * Route helper: rebuilds the vertex sequence source -> target by following
-     * parent_edge IDs backwards and reversing. Runs in O(L) for a route of L vertices.
-     *
-     * No-route result: an EMPTY list when target is unreachable (parent_edge[target]
-     * is -1 and target is not the source). A reachable route always contains at
-     * least one vertex, so the empty list cannot be confused with a real route.
-     * Expects the parent_edge array of an acyclic dag result.
-     */
+    // Returns an empty list when target is unreachable.
     static List<Integer> route(int[][] edges, int[] parentEdge, int source, int target) {
         List<Integer> path = new ArrayList<>();
         if (target != source && parentEdge[target] < 0) {

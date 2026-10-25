@@ -3,13 +3,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Minimal JSON reader/writer for the JSON Lines protocol.
- *
- * Reading produces LinkedHashMap, ArrayList, String, Long (or Double for a
- * number with a fraction/exponent), Boolean and null. Writing accepts those
- * types plus int[], long[] and object arrays (for example Long[] or int[][]).
- */
 final class JsonCodec {
     private final String text;
     private int pos;
@@ -27,8 +20,6 @@ final class JsonCodec {
         }
         return value;
     }
-
-    // ------------------------------------------------------------------ reading
 
     private Object value() {
         skipSpace();
@@ -58,7 +49,7 @@ final class JsonCodec {
     }
 
     private Map<String, Object> object() {
-        pos++; // '{'
+        pos++;
         Map<String, Object> result = new LinkedHashMap<>();
         skipSpace();
         if (peek() == '}') {
@@ -86,7 +77,7 @@ final class JsonCodec {
     }
 
     private List<Object> array() {
-        pos++; // '['
+        pos++;
         List<Object> result = new ArrayList<>();
         skipSpace();
         if (peek() == ']') {
@@ -107,7 +98,7 @@ final class JsonCodec {
     }
 
     private String string() {
-        pos++; // opening quote
+        pos++;
         StringBuilder out = new StringBuilder();
         while (true) {
             char c = next();
@@ -132,7 +123,7 @@ final class JsonCodec {
                     out.append((char) Integer.parseInt(text.substring(pos, pos + 4), 16));
                     pos += 4;
                     break;
-                default: out.append(e); // '"', '\\' and '/'
+                default: out.append(e);
             }
         }
     }
@@ -198,8 +189,6 @@ final class JsonCodec {
     private IllegalArgumentException error(String message) {
         return new IllegalArgumentException("JSON " + message + " at position " + pos);
     }
-
-    // ------------------------------------------------------------------ writing
 
     static String write(Object value) {
         StringBuilder out = new StringBuilder();

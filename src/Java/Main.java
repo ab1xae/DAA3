@@ -8,13 +8,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * JSON Lines entry point: one request object per input line, one result object
- * per output line. Only results go to standard output.
- *
- *   javac --release 17 -encoding UTF-8 -d .build/java src/Java/*.java
- *   java -Xmx384m -cp .build/java Main < requests.jsonl
- */
 public final class Main {
     private Main() {
     }
@@ -31,7 +24,6 @@ public final class Main {
             try {
                 result = handle(asObject(JsonCodec.parse(line)));
             } catch (RuntimeException error) {
-                // Keep one output line per request even for a bad request.
                 result = new LinkedHashMap<>();
                 result.put("error", String.valueOf(error.getMessage()));
             }
@@ -41,7 +33,6 @@ public final class Main {
         }
     }
 
-    /** Dispatches one parsed request; every call works on freshly built input arrays. */
     static Map<String, Object> handle(Map<String, Object> request) {
         String task = (String) request.get("task");
         switch (task) {
@@ -78,7 +69,6 @@ public final class Main {
         return Math.toIntExact(((Number) request.get(field)).longValue());
     }
 
-    /** Converts a JSON array of integer arrays into int[][]; row i keeps index i. */
     private static int[][] rows(Map<String, Object> request, String field) {
         List<?> list = (List<?>) request.get(field);
         int[][] result = new int[list.size()][];
