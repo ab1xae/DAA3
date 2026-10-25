@@ -17,6 +17,9 @@ public final class Main {
         BufferedWriter out = new BufferedWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
         String line;
         while ((line = in.readLine()) != null) {
+            if (line.startsWith("﻿")) {
+                line = line.substring(1);
+            }
             if (line.isBlank()) {
                 continue;
             }
