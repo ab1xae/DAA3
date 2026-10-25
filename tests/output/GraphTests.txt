@@ -1,0 +1,93 @@
+== DSU
+PASS dsu n=0 gives states=[]
+PASS dsu published example
+PASS dsu self-unions on a single vertex keep [1,1]
+PASS dsu self-union, repeated union and a final merge
+PASS dsu random small graphs vs naive relabelling (1500 cases)
+== Kruskal / Prim
+PASS kruskal n=0 gives cost 0, no edges, 0 components
+PASS kruskal four isolated vertices give 4 components
+PASS kruskal published example (cost 5, 2 components)
+PASS kruskal negative weights, parallel edges, loop -100 ignored, isolated 5 (cost 0)
+PASS kruskal total 3e9 exceeds 32 bits, tied weights
+PASS kruskal total -3e9 below 32-bit range
+PASS prim n=0 gives cost 0, no edges, 0 components
+PASS prim four isolated vertices give 4 components
+PASS prim published example (cost 5, 2 components)
+PASS prim negative weights, parallel edges, loop -100 ignored, isolated 5 (cost 0)
+PASS prim total 3e9 exceeds 32 bits, tied weights
+PASS prim total -3e9 below 32-bit range
+PASS kruskal and prim random small graphs vs subset enumeration (1500 cases)
+== Kosaraju SCC
+PASS scc n=0 gives empty arrays
+PASS scc isolated vertices are three separate SCCs
+PASS scc duplicates, self-loops and two edges between the same SCCs give one condensation pair
+PASS scc random small graphs vs transitive closure (1500 cases)
+== Topological order
+PASS topo n=0 is acyclic with order=[]
+PASS topo DAG with a duplicate edge and two weakly connected parts
+PASS topo self-loop is a cycle
+PASS topo cycle in a second component is found
+PASS topo edge into a FINISHED vertex is not a cycle
+PASS topo random small graphs vs Kahn's algorithm (1500 cases)
+== DAG shortest paths
+PASS dag published example distances [0,3,-4,0,null]
+PASS dag single vertex
+PASS dag cycle unreachable from the source still makes acyclic=false
+PASS dag self-loop makes the graph cyclic
+PASS dag distance -1 is finite; vertex 0 with an edge into the source stays null
+PASS dag distance 3e9 beyond 32 bits
+PASS dag random small graphs vs Bellman-Ford (1500 cases)
+== Route helper
+  example parent_edge=[-1, 0, 2, 3, -1]
+  route(0 -> 3) = [0, 1, 2, 3], cost 0
+PASS route to reachable vertex 3 is [0,1,2,3] with cost 0 = distance[3]
+  route(0 -> 0) = [0]
+PASS route to the source is [source]
+  route(0 -> 4) = [] (unreachable)
+PASS route to unreachable vertex 4 is the empty list
+  tied parent_edge=[-1, 0, 2, 4] distance=[0, 2, 1, 2]
+  route(0 -> 3) = [0, 1, 3], cost 2, parent_edge[1]=0
+PASS route with parallel and tied edges is one of the optimal routes, cost 2
+PASS route helper and checker accept the other parallel edge as parent of 1
+PASS route helper and checker accept the tied detour 0->2->1->3
+== Checker accepts alternatives / rejects invalid witnesses
+PASS forest checker accepts two different optimal forests
+PASS forest checker rejects a repeated edge ID
+PASS forest checker rejects a self-loop
+PASS forest checker rejects a cycle and a non-optimal cost
+PASS forest checker rejects a wrong component count
+PASS scc checker accepts relabelled components and any pair order
+PASS scc checker rejects a missing condensation pair
+PASS scc checker rejects a duplicate condensation pair
+PASS scc checker rejects a merged class that is not strongly connected
+PASS scc checker rejects a split SCC (condensation would have a cycle)
+PASS topo checker accepts two different valid orders
+PASS topo checker rejects an order with a backward edge
+PASS topo checker rejects a repeated vertex
+PASS dag checker rejects a parent edge that is not tight
+PASS dag checker rejects a parent edge that does not end at the vertex
+PASS dag checker rejects a consistent but non-shortest tree
+PASS dag checker rejects -1 as an unreachable distance
+== State reset
+PASS three rounds of mixed requests in one JVM give identical JSON results
+PASS ping answers {"status":"ready"}
+PASS dag example is written with null for the unreachable vertex
+PASS JSON reader/writer round-trips escapes, unicode, nested arrays and literals
+PASS JSON writer handles int[], Long[] with null and lists
+== Large inputs (n = 100000, m or q = 250000) and deep chains
+PASS dsu n=100000 q=250000: final components match BFS (11 ms)
+PASS dsu long chain of unions ends as one component of size n
+PASS kruskal (64 ms) and prim (138 ms) agree at n=100000 m=250000, cost -52936447029490
+PASS kruskal and prim on a 100000-vertex path, cost 9.9999e13
+PASS scc random n=100000 m=250000 passes the certificate (71 ms)
+PASS scc deep chain of 100000 vertices: n singleton SCCs
+PASS scc 100000-vertex ring is a single SCC
+PASS topo random DAG n=100000 m=250000 (27 ms)
+PASS topo deep chains of 100000 vertices in both numbering directions
+PASS topo 100000-vertex ring is cyclic
+PASS dag random n=100000 m=250000 passes the certificate (24 ms)
+PASS dag deep chain of 100000 vertices, distance -9.9999e13, route of 100000 vertices
+PASS dag 100000-vertex ring is cyclic
+
+SUMMARY: 76 passed, 0 failed (1.8 s)

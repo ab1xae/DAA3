@@ -1,0 +1,50 @@
+PASS dsu empty
+PASS dsu self, repeated and merging unions
+PASS dsu single vertex self-unions
+PASS kruskal empty
+PASS kruskal negative, parallel, loop, isolated
+PASS prim negative, parallel, loop, isolated
+PASS kruskal tied weights, total 3e9
+PASS prim tied weights, total 3e9
+PASS kruskal total -3e9
+PASS prim isolated vertices only
+PASS scc empty
+PASS scc duplicates, loops, two edges between the same SCCs
+PASS scc isolated vertices
+PASS topo empty
+PASS topo duplicate edge, two parts
+PASS topo cycle in a later component
+PASS topo self-loop
+PASS topo edge to a finished vertex
+PASS dag singleton
+PASS dag cycle unreachable from source
+PASS dag distance -1, unreachable vertex with edge into source
+PASS dag parallel and tied routes
+PASS dag distance 3e9
+PASS dag self-loop
+PASS [repeat] dsu empty
+PASS [repeat] dsu self, repeated and merging unions
+PASS [repeat] dsu single vertex self-unions
+PASS [repeat] kruskal empty
+PASS [repeat] kruskal negative, parallel, loop, isolated
+PASS [repeat] prim negative, parallel, loop, isolated
+PASS [repeat] kruskal tied weights, total 3e9
+PASS [repeat] prim tied weights, total 3e9
+PASS [repeat] kruskal total -3e9
+PASS [repeat] prim isolated vertices only
+PASS [repeat] scc empty
+PASS [repeat] scc duplicates, loops, two edges between the same SCCs
+PASS [repeat] scc isolated vertices
+PASS [repeat] topo empty
+PASS [repeat] topo duplicate edge, two parts
+PASS [repeat] topo cycle in a later component
+PASS [repeat] topo self-loop
+PASS [repeat] topo edge to a finished vertex
+PASS [repeat] dag singleton
+PASS [repeat] dag cycle unreachable from source
+PASS [repeat] dag distance -1, unreachable vertex with edge into source
+PASS [repeat] dag parallel and tied routes
+PASS [repeat] dag distance 3e9
+PASS [repeat] dag self-loop
+PASS second batch in the same process repeats the first exactly
+ALL PASSED

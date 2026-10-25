@@ -1,0 +1,12 @@
+Java 25 (OpenJDK 64-Bit Server VM), Windows 11 amd64, 16 logical CPUs, max heap 384 MiB
+seed=20261025+n, warm-up=5 calls per method, timed runs=7
+
+n=10000 m=25000 verified: cost=-5334526775020 components=67, both forests valid
+n=50000 m=125000 verified: cost=-26463030823142 components=329, both forests valid
+n=100000 m=250000 verified: cost=-52737000949726 components=687, both forests valid
+
+| n | m | cost | components | Kruskal runs (ms) | Kruskal median | Prim runs (ms) | Prim median | Prim / Kruskal |
+|---:|---:|---:|---:|---|---:|---|---:|---:|
+| 10000 | 25000 | -5334526775020 | 67 | 2.06, 1.53, 1.48, 1.55, 1.52, 1.48, 1.43 | 1.52 | 2.63, 2.74, 2.58, 2.60, 2.57, 2.41, 2.48 | 2.58 | 1.69 |
+| 50000 | 125000 | -26463030823142 | 329 | 9.38, 8.78, 9.99, 9.10, 9.89, 10.13, 9.16 | 9.38 | 19.82, 21.37, 21.16, 19.97, 33.06, 22.95, 20.31 | 21.16 | 2.26 |
+| 100000 | 250000 | -52737000949726 | 687 | 22.77, 24.97, 22.41, 21.99, 23.33, 22.34, 22.18 | 22.41 | 62.34, 64.20, 61.72, 63.41, 73.94, 65.32, 61.31 | 63.41 | 2.83 |

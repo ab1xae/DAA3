@@ -1,0 +1,17 @@
+PASS dsu random n=100000 q=250000
+PASS dsu chain of unions
+PASS kruskal random n=100000 m=250000
+PASS prim random n=100000 m=250000
+PASS kruskal path, cost 9.9999e13
+PASS prim path, cost 9.9999e13
+PASS scc planted groups n=100000 m=250000
+PASS scc deep chain
+PASS scc ring
+PASS topo random DAG n=100000 m=250000
+PASS topo deep chain (descending IDs)
+PASS topo ring
+PASS dag random n=100000 m=250000
+PASS dag deep chain, distance -9.9999e13
+PASS dag ring
+15 limit-size requests in one process: 3.2 s wall time (includes JVM start, JSON parsing and output)
+ALL PASSED
