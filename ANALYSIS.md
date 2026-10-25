@@ -195,9 +195,3 @@ by JIT and garbage collection. Dense graphs or another heap could give different
 
 **Theory.** Both are O(m log m) here, so theory predicts the same growth; the difference is a
 constant factor.
-
-## 11. Sources
-
-* Course materials.
-* Cormen, Leiserson, Rivest, Stein, *Introduction to Algorithms* (graph algorithms, minimum
-  spanning trees, shortest paths, disjoint sets).
